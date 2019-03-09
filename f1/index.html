@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+  <style type="text/css">
+
+    html,
+    body {
+      font-family: Helvetia, Arial, sans-serif;
+    }
+
+    h4 {
+      margin-left: 5px;
+    }
+
+    p {
+      margin: auto;
+      padding-bottom: 10px;
+      width: calc(100% - 20px);
+    }
+
+    .personal {
+      border: 2px solid black;
+    }
+
+    .entry {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      float: left;
+      margin: 5px;
+      max-width: 230px;
+      transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+      width: 40%;
+    }
+
+    .entry:hover {
+      box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+      cursor: pointer;
+    }
+
+    .inner-entry {
+      margin: 5%;
+      width: 90%;
+    }
+
+    .entry img {
+      width: 100%;
+    }
+
+    .modal-mask {
+      position: fixed;
+      z-index: 9998;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, .5);
+      display: table;
+      transition: opacity .3s ease;
+    }
+
+    .modal-wrapper {
+      display: table-cell;
+      vertical-align: middle;
+    }
+
+    .modal-container {
+      width: 300px;
+      margin: 0px auto;
+      padding: 20px 30px;
+      background-color: #fff;
+      border-radius: 2px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+      transition: all .3s ease;
+      font-family: Helvetica, Arial, sans-serif;
+    }
+
+    .modal-body {
+      margin: 20px 0;
+    }
+
+    .modal-body img {
+      width: 100%;
+    }
+
+    .modal-default-button {
+      height: 24px;
+      font-size: 16px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .modal-default-button:hover {
+      background-color: #000;
+      color: #FFF;
+    }
+
+    /*
+     * The following styles are auto-applied to elements with
+     * transition="modal" when their visibility is toggled
+     * by Vue.js.
+     *
+     * You can easily play with the modal transition by editing
+     * these styles.
+     */
+
+    .modal-enter {
+      opacity: 0;
+    }
+
+    .modal-leave-active {
+      opacity: 0;
+    }
+
+    .modal-enter .modal-container,
+    .modal-leave-active .modal-container {
+      -webkit-transform: scale(1.1);
+      transform: scale(1.1);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <h4>#NEEEUM</h4>
+    <p><i>I'm John. I like Formula 1. If you see something with a black border, that's just me jibber jabbering. If you see something in red. That's race related. If you see nothing, that's news.</i></p>
+    <entry v-for="entry in entries" :entry="entry" @show="render"></entry>
+    <modal v-if="active" @close="active = null" :entry="active">
+  </div>
+
+  <script type="text/javascript">
+
+    Vue.component('modal', {
+      props: ['entry'],
+      template: `
+        <transition name="modal">
+          <div class="modal-mask">
+            <div class="modal-wrapper">
+              <div class="modal-container">
+
+                <div class="modal-body">
+                  <slot name="body">
+                    <a target="new" :href="entry.image">
+                      <img :src="entry.image" />
+                    </a>
+                    <a target="new" :href="entry.source">source</a>
+
+                  </slot>
+                </div>
+
+                <div class="modal-footer">
+                  <slot name="footer">
+                    <div v-html="entry.opinion"></div>
+                    <button class="modal-default-button" @click="$emit('close')">
+                      close
+                    </button>
+                  </slot>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      `
+    })
+
+    Vue.component('entry', {
+      props: ['entry', 'index'],
+      data() {
+        return {
+          months: {
+            1: 'January',
+            2: 'February',
+            3: 'March',
+            4: 'April',
+            5: 'May',
+            6: 'June',
+            7: 'July',
+            8: 'August',
+            9: 'September',
+            10: 'October',
+            11: 'November',
+            12: 'December'
+          }
+        }
+      },
+      template: `
+        <div class="entry" @click="showModal" :class="{ personal: entry.personal }">
+          <div class="inner-entry">
+            <div class="date">{{ readableDate }}</div>
+            <img :src="entry.image" />
+            <div class="title">{{ entry.title }}</div>
+          </div>
+        </div>
+      `,
+      computed: {
+        readableDate: function() {
+          let dateToString = this.entry.date.toString()
+          let year = dateToString.substring(0, 4)
+          let month = parseInt(dateToString.substring(4, 6))
+          let day = dateToString.substring(6, 8)
+          return `${day} ${this.months[month]} ${year}`
+        }
+      },
+      methods: {
+        showModal: function() {
+          this.$emit('show', this)
+        }
+      }
+    })
+
+    // 
+
+    let ENTRIES = [
+      {
+        title: "'Formula 1: Drive to Survive' is on Netflix",
+        image: "https://msmproduction.s3-eu-west-1.amazonaws.com/s3fs-public/content/F1/2018/1%20%E2%80%93%20Australia/f1_confirms_netflix_series.jpg",
+        source: "https://www.netflix.com/title/80204890",
+        date: 20190306,
+        opinion: `<a target="new" href="https://getyarn.io/yarn-clip/d0b8d1ce-b0c2-45ae-bd54-d4c2493ded21">Its really good.</a>`,
+        personal: false,
+        tags: `F1, Formula 1, Netflix`
+      },
+      {
+        title: "Paddy Lowe takes leave of absence",
+        image: "https://d2d0b2rxqzh1q5.cloudfront.net/sv/2.183/dir/911/image/9119dcc7d44ce9b9d1a5b24a71b0d6dc.jpg",
+        source: "https://www.formula1.com/en/latest/article.tech-chief-paddy-lowe-takes-'leave-of-absence'-from-williams.7mOior1HTDAVNG68c4YQyn.html",
+        date: 20190306,
+        opinion: `Personally, I think this is a sign of something unfortunately bigger. Late to testing, 2 drivers who have been in limited roles last year are now thrown into the mix. In addition, rumors of the internal politics at Williams going on after the 2018 season don't seem to help any of their current situation.`,
+        personal: false,
+        tags: `Paddy Lowe, Williams`
+      },
+      {
+        title: "Williams alter car to ensure legality",
+        image: "https://d2d0b2rxqzh1q5.cloudfront.net/sv/2.183/dir/822/image/822fd8b9fd94878ae064f6ab32c2de48.jpg",
+        source: "https://www.autosport.com/f1/news/141949/williams-making-car-changes-to-ensure-legality",
+        date: 20190307,
+        opinion: `It was bound to happen. It would be nice to know how much benefit the Williams had with this "illegality". Always impressive to see how the FIA and the scrutineers pick this out.`,
+        personal: false,
+        tags: `Williams`
+      },
+      {
+        title: `Chemical Brothers come out with 'We've Got To Try"`,
+        image: "https://images.cdn.circlesix.co/image/2/1200/630/5/uploads/posts/2019/03/d868713aa2559c5e2b51f37d0009c98d.png",
+        source: "https://www.youtube.com/watch?v=mRfSM-lv55I",
+        date: 20190308,
+        opinion: `Its a banger!`,
+        personal: false,
+        tags: `F1, Formula 1`
+      },
+      {
+        title: "Welcome to the start of the 2019 Season",
+        image: "https://media1.giphy.com/media/uldwB7EijTDTwKHQED/giphy.gif?cid=3640f6095c83ca5b50726b4d5957aa54",
+        source: "https://media1.giphy.com/media/uldwB7EijTDTwKHQED/giphy.gif?cid=3640f6095c83ca5b50726b4d5957aa54",
+        date: 20190309,
+        opinion: `Welcome! This is the start of my F1 blog. I hacked this site together tonight in a few hours from like, 2am to 5am. This is meant to really keep a timeline of the year and give a small bit of my opinon. In like August of last year, I wanted to remember events from earlier in the year, this will allow me to do that. It'll improve over the time. Enjoy! #NEEEUM`,
+        personal: true,
+        tags: `Personal, John Akers`
+      },
+      {
+        title: "Fastest lap now awarded 1 point, for those finishing in the top 10",
+        image: "https://media.giphy.com/media/DN0VIGdNuIhGpO1TQP/giphy.gif",
+        source: "https://www.formula1.com/en/latest/article.bonus-point-to-be-awarded-for-fastest-lap-in-2019.4gwBT6QW1NR1AlrlzAkKSP.html",
+        date: 20190311,
+        opinion: `I like it. I also like for those in the top 10 to prevent gaming it. I'd also be up for fastest 4 tire pit stop to get a Constructor's point for an unlapped team.`,
+        personal: false,
+        tags: `F1, Formula 1`
+      },
+    ]
+
+    new Vue({
+      el: "#app",
+      data: {
+        active: null,
+        entries: ENTRIES 
+      },
+      methods: {
+        render: function(observer) {
+          let thisEntry = {
+            opinion: observer.entry.opinion,
+            image: observer.entry.image,
+            source: observer.entry.source
+          }
+
+          this.active = thisEntry
+        }
+      }
+    })
+
+  </script>
+
+</body>
+</html>
